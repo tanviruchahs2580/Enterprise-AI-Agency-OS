@@ -1,0 +1,37 @@
+{
+  "name": "enterprise-ai-agency-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Core contracts and API foundation for an auditable AI software-delivery control plane",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": "^24.0.0 || >=26.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "tsc --noEmit -p tsconfig.check.json",
+    "lint": "eslint .",
+    "test": "cross-env NODE_ENV=test vitest run --config vitest.config.ts",
+    "smoke": "node scripts/smoke.mjs",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build && npm run smoke",
+    "start:api": "npm run start -w @agency/api",
+    "provision": "npm run provision -w @agency/api --",
+    "revoke": "npm run revoke -w @agency/api --",
+    "backup": "node apps/api/dist/backup.js",
+    "restore:drill": "node apps/api/dist/restore-drill.js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^24.19.2",
+    "cross-env": "^7.0.3",
+    "eslint": "^9.17.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0",
+    "vitest": "^5.0.5"
+  }
+}
