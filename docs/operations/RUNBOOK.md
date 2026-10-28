@@ -15,7 +15,7 @@ npm ci --ignore-scripts
 npm run verify
 ```
 
-`npm run verify` runs lint, strict typecheck, 104 tests, build, and the core smoke test.
+`npm run verify` runs lint, strict typecheck, 105 tests, build, and the core smoke test.
 
 ## Provision a tenant and token
 
@@ -57,7 +57,7 @@ Environment variables:
 | `RATE_LIMIT_MAX` | `120` | Authenticated requests per token per window, 1-100000 |
 | `RATE_LIMIT_WINDOW_MS` | `60000` | Rate-limit window in milliseconds, 1000-3600000 |
 
-The database directory is created if missing. Migrations run automatically at startup. The schema version is stored in SQLite `user_version`; an older binary refuses to open a newer schema. Schema v2 adds token expiry and idempotency records.
+The database directory is created if missing. Migrations run automatically at startup. The schema version is stored in SQLite `user_version`; an older binary refuses to open a newer schema. Schema v2 added token expiry and idempotency records. Schema v3 adds a monotonic event sequence so same-millisecond events have deterministic order.
 
 ## Health checks
 

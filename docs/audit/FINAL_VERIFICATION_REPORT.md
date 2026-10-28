@@ -1,6 +1,6 @@
 # Final Verification Report: Core Baseline
 
-> Historical baseline. This report records the core-only revision before the API foundation. For the current API scope, 104-test suite, and Node 24 requirement, use `docs/audit/API_FOUNDATION_VERIFICATION.md`. The release decision remains `NOT READY`.
+> Historical baseline. This report records the core-only revision before the API foundation. For the current API scope, 105-test suite, and Node 24 requirement, use `docs/audit/API_FOUNDATION_VERIFICATION.md`. The release decision remains `NOT READY`.
 
 ## A. Executive decision
 

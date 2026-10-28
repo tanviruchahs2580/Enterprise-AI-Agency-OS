@@ -24,9 +24,9 @@ After the core remediation, a local API and persistence foundation was added and
 | --- | --- |
 | Runtime | Node 24 or 26+; Node 22 is unsupported because the API uses `node:sqlite` |
 | API | Fastify 5 service with bearer auth, roles/scopes, tenant isolation, Zod validation, and Helmet |
-| Persistence | SQLite schema v2 with `STRICT` tables, foreign keys, WAL, migrations, optimistic version checks, token expiry, and idempotency records |
+| Persistence | SQLite schema v3 with `STRICT` tables, foreign keys, WAL, migrations, optimistic version checks, token expiry, idempotency records, and a monotonic event sequence |
 | Hardening | Per-token rate limits, idempotent writes, audit export, Prometheus metrics, trace propagation, online backup, and restore drill |
-| Tests | 104 pass: 78 unit tests and 26 API integration/backup tests |
+| Tests | 105 pass: 78 unit tests and 27 API integration/backup tests |
 | Documentation | API contract, operations runbook, current threat model, ADR-002, and `API_FOUNDATION_VERIFICATION.md` |
 | Release decision | Still `NOT READY`; CI and branch protection are recorded in A.2, but there is no worker, agent runtime, tools, approvals, or deployment |
 
@@ -110,9 +110,9 @@ Impact: every core contract was unverified. Lint and typecheck cannot detect inc
 
 Root cause: tests were declared in configuration but never written.
 
-Fix: added unit tests covering state graphs, transition errors, error serialization and retryability, event validation, identifiers, hash vectors, retry/backoff, and rate limiting. The suite now includes 78 unit and 26 integration tests.
+Fix: added unit tests covering state graphs, transition errors, error serialization and retryability, event validation, identifiers, hash vectors, retry/backoff, and rate limiting. The suite now includes 78 unit and 27 integration tests.
 
-Regression evidence: `tests/unit/state-machine.test.ts`, `tests/unit/errors.test.ts`, `tests/unit/events.test.ts`, `tests/unit/ids.test.ts`, `tests/unit/retry.test.ts`, and `tests/unit/rate-limit.test.ts`; the current suite passes 104/104, including 26 API integration and backup tests.
+Regression evidence: `tests/unit/state-machine.test.ts`, `tests/unit/errors.test.ts`, `tests/unit/events.test.ts`, `tests/unit/ids.test.ts`, `tests/unit/retry.test.ts`, and `tests/unit/rate-limit.test.ts`; the current suite passes 105/105, including 27 API integration and backup tests.
 
 Residual risk: no contract, E2E, browser, load, or tool-execution tests exist.
 
@@ -282,7 +282,7 @@ Residual risk: API and local operations documentation now exist, but deployment,
 | --- | --- | --- |
 | Product requirements and feature integrity | FAIL | Authenticated mission/task API exists; no end-to-end agency product |
 | Architecture and design quality | IN PROGRESS | Core package boundaries, state machines, and API service; no worker or provider contracts |
-| Code quality and maintainability | PASS (local scope) | Lint, strict typecheck, 104 tests, core+API build |
+| Code quality and maintainability | PASS (local scope) | Lint, strict typecheck, 105 tests, core+API build |
 | Testing and verification | IN PROGRESS | Unit and API integration tests; no E2E, load, or tool-execution tests |
 | API and backend quality | IN PROGRESS | Authenticated API, idempotency, rate limits, audit export; no worker or queue |
 | Database and data lifecycle | IN PROGRESS | SQLite schema, tenant isolation, online backup, retention, restore drill; no encryption |

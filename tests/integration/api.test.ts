@@ -842,6 +842,63 @@ describe("API audit export", () => {
     );
     expectError(inverted, 400, "VALIDATION_ERROR");
   });
+
+  it("orders same-millisecond events by insertion sequence", async () => {
+    const mission = await createMission(fixture().admin.token, "Ordered");
+    const moved = await call(
+      fixture().admin.token,
+      "POST",
+      `/v1/missions/${mission.mission.id}/transitions`,
+      { to: "DISCOVERY", expectedVersion: 0 },
+    );
+    expect(moved.statusCode).toBe(200);
+
+    const rows = fixture()
+      .db.prepare(
+        "SELECT event_id, event_type FROM domain_events WHERE tenant_id = ? ORDER BY seq ASC",
+      )
+      .all(fixture().tenantA.id) as Array<{
+      event_id: string;
+      event_type: string;
+    }>;
+    expect(rows.map((row) => row.event_type)).toEqual([
+      "MissionCreated",
+      "MissionStateChanged",
+    ]);
+
+    fixture()
+      .db.prepare("UPDATE domain_events SET occurred_at = ? WHERE tenant_id = ?")
+      .run("2026-01-01T00:00:00.000Z", fixture().tenantA.id);
+    fixture()
+      .db.prepare("UPDATE domain_events SET event_id = ? WHERE event_id = ?")
+      .run("ffffffff-ffff-4fff-bfff-ffffffffffff", rows[0]!.event_id);
+    fixture()
+      .db.prepare("UPDATE domain_events SET event_id = ? WHERE event_id = ?")
+      .run("00000000-0000-4000-8000-000000000000", rows[1]!.event_id);
+
+    const exported = await call(
+      fixture().viewer.token,
+      "GET",
+      "/v1/audit/export?format=json",
+    );
+    expect(exported.statusCode).toBe(200);
+    const body = exported.json() as { events: EventBody[] };
+    expect(body.events.map((event) => event.event_type)).toEqual([
+      "MissionCreated",
+      "MissionStateChanged",
+    ]);
+
+    const listed = await call(
+      fixture().admin.token,
+      "GET",
+      `/v1/events?aggregateType=MISSION&aggregateId=${mission.mission.id}`,
+    );
+    const listBody = listed.json() as ListBody<EventBody>;
+    expect(listBody.items.map((event) => event.event_type)).toEqual([
+      "MissionCreated",
+      "MissionStateChanged",
+    ]);
+  });
 });
 
 describe("API metrics and traces", () => {
@@ -888,13 +945,47 @@ describe("API metrics and traces", () => {
 });
 
 describe("API schema migration", () => {
-  it("migrates a v1 database to v2 without losing existing data", async () => {
+  it("migrates a v1 database to the current schema without losing existing data", async () => {
     const mission = await createMission(fixture().admin.token, "Persisted");
     const db = fixture().db;
     db.exec(`
       DROP TABLE idempotency_keys;
       DROP INDEX idx_api_tokens_expires;
       ALTER TABLE api_tokens DROP COLUMN expires_at;
+
+      DROP INDEX idx_events_tenant_aggregate;
+      DROP INDEX idx_events_tenant_occurred;
+      ALTER TABLE domain_events RENAME TO domain_events_v3_old;
+      CREATE TABLE domain_events (
+        event_id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        aggregate_type TEXT NOT NULL,
+        aggregate_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        schema_version INTEGER NOT NULL CHECK (schema_version = 1),
+        occurred_at TEXT NOT NULL,
+        actor_type TEXT NOT NULL,
+        actor_id TEXT,
+        correlation_id TEXT,
+        causation_id TEXT,
+        payload_json TEXT NOT NULL CHECK (json_valid(payload_json))
+      ) STRICT;
+      INSERT INTO domain_events
+        (event_id, tenant_id, aggregate_type, aggregate_id, event_type,
+         schema_version, occurred_at, actor_type, actor_id, correlation_id,
+         causation_id, payload_json)
+      SELECT
+        event_id, tenant_id, aggregate_type, aggregate_id, event_type,
+        schema_version, occurred_at, actor_type, actor_id, correlation_id,
+        causation_id, payload_json
+      FROM domain_events_v3_old
+      ORDER BY seq;
+      DROP TABLE domain_events_v3_old;
+      CREATE INDEX idx_events_tenant_aggregate
+        ON domain_events (tenant_id, aggregate_type, aggregate_id, occurred_at, event_id);
+      CREATE INDEX idx_events_tenant_occurred
+        ON domain_events (tenant_id, occurred_at, event_id);
+
       PRAGMA user_version = 1;
     `);
     db.close();
@@ -905,17 +996,32 @@ describe("API schema migration", () => {
     const version = reopened.prepare("PRAGMA user_version;").get() as {
       user_version: number;
     };
-    expect(version.user_version).toBe(2);
+    expect(version.user_version).toBe(3);
 
     const columns = reopened
       .prepare("PRAGMA table_info(api_tokens);")
       .all() as Array<{ name: string }>;
     expect(columns.map((column) => column.name)).toContain("expires_at");
 
+    const eventColumns = reopened
+      .prepare("PRAGMA table_info(domain_events);")
+      .all() as Array<{ name: string }>;
+    expect(eventColumns.map((column) => column.name)).toContain("seq");
+
     const tables = reopened
       .prepare("SELECT name FROM sqlite_master WHERE type = 'table';")
       .all() as Array<{ name: string }>;
     expect(tables.map((table) => table.name)).toContain("idempotency_keys");
+
+    const events = reopened
+      .prepare(
+        "SELECT event_type, seq FROM domain_events WHERE tenant_id = ? ORDER BY seq ASC",
+      )
+      .all(fixture().tenantA.id) as Array<{
+      event_type: string;
+      seq: number;
+    }>;
+    expect(events).toEqual([{ event_type: "MissionCreated", seq: 1 }]);
 
     const row = reopened
       .prepare("SELECT title, state FROM missions WHERE id = ?")

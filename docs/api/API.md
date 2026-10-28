@@ -179,7 +179,7 @@ Task codes are allocated per tenant as `TSK-0001`, `TSK-0002`, and so on. Creati
 | `GET` | `/v1/events` | `events:read` | `aggregateType` (`MISSION` or `TASK`), `aggregateId` (UUID), `limit`, `offset` |
 | `GET` | `/v1/audit/export` | `events:read` | `from`, `to` (ISO-8601 UTC), `format` (`json` or `ndjson`, default `ndjson`), `limit` (1-10000, default 1000) |
 
-Events are returned in occurrence order. The four API event types have strict payload schemas validated at creation and when read back:
+Events are returned in occurrence order, with same-millisecond events ordered by insertion sequence. The four API event types have strict payload schemas validated at creation and when read back:
 
 | Event | Required payload fields |
 | --- | --- |

@@ -20,7 +20,7 @@ Implemented and tested:
 - Tenant-scoped audit export in JSON or NDJSON.
 - Prometheus text metrics, W3C trace-context propagation, and request/trace correlation headers.
 - SQLite persistence with foreign keys, migrations, WAL, strict tables, restart recovery, automated online backup, and a restore drill.
-- 104 unit and integration tests, including tenant isolation, denied transitions, scope failures, stale versions, idempotency replay/conflicts and restart persistence, token expiry, rate limiting, audit export, metrics/traces, schema migration, restart recovery, and backup/restore.
+- 105 unit and integration tests, including tenant isolation, denied transitions, scope failures, stale versions, idempotency replay/conflicts and restart persistence, token expiry, rate limiting, audit export, metrics/traces, deterministic event ordering, schema migration, restart recovery, and backup/restore.
 
 Not implemented:
 

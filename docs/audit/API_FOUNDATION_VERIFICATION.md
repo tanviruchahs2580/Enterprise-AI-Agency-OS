@@ -11,7 +11,7 @@ The API and persistence foundation is implemented, published, and verified local
 | Target | `https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS` |
 | Local path | `C:\Users\DST\Documents\Default Project\Enterprise-AI-Agency-OS` |
 | Revision | Verified code revision `99484db9cc18c3aac56017202f95452f284f7535` on `main`; evidence committed separately |
-| Verified at | 2026-10-29T00:09+06:00 |
+| Verified at | 2026-10-29T00:19+06:00 |
 | Runtime | Node 24.19.0, npm 11.17.0; CI on Node 24.x |
 | Authorization | A0/A1 for inspection and local changes; explicit A2 authorization for the initial commit, push, CI execution, and branch protection |
 
@@ -23,11 +23,12 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 - Added `@agency/api`, a Fastify 5 service with Zod validation and Helmet headers.
 - Added SQLite persistence with:
   - `STRICT` tables, foreign keys, composite tenant/mission ownership, and indexes.
-  - Automatic schema migration through `PRAGMA user_version`; schema v2 adds token expiry and idempotency records.
+  - Automatic schema migration through `PRAGMA user_version`; schema v2 adds token expiry and idempotency records, and schema v3 adds a monotonic event sequence.
   - WAL, `synchronous=FULL`, busy timeout, disabled extension loading, and `trusted_schema=OFF`.
 - Added bearer-token authentication with 256-bit random tokens, SHA-256 hash storage, roles, scopes, revocation, and a 30-day default expiry.
 - Added tenant-scoped mission and task creation plus transactional transitions with optimistic version checks.
 - Added durable domain events written in the same transaction as each state change.
+- Added a monotonic event sequence so same-millisecond events are returned in deterministic insertion order.
 - Added strict payload schemas for `MissionCreated`, `MissionStateChanged`, `TaskCreated`, and `TaskStateChanged`.
 - Added tenant-, token-, operation-, and request-hash-scoped idempotency keys with a 24-hour replay window and conflict detection on mission/task creates and transitions.
 - Added per-token in-memory rate limiting with `x-ratelimit-*` headers, `429 RATE_LIMITED`, and `Retry-After`.
@@ -38,7 +39,7 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 - Added health/readiness endpoints, structured error envelopes, server-generated request ids, body limits, and authorization-header redaction.
 - Added provisioning and revocation CLIs.
 - Added API contract, operations runbook, ADR-002, and updated threat model.
-- Added 104 tests: 78 unit and 26 API integration/backup tests.
+- Added 105 tests: 78 unit and 27 API integration/backup tests.
 
 ## C. Acceptance evidence
 
@@ -58,8 +59,9 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 | Token expiry | Past-expiry tokens return `401`; active tokens report `expiresAt`; `null` expiry is supported for local provisioning | PASS |
 | Rate limiting | Per-token budget returns `429` with `Retry-After`; a second token is unaffected | PASS |
 | Audit export | NDJSON and JSON exports are tenant-scoped, bounded, and exclude another tenant's events | PASS |
+| Event ordering | Same-millisecond events are returned in insertion order using a monotonic sequence, independent of event id | PASS |
 | Metrics and traces | Admin metrics expose Prometheus counters/histograms; valid `traceparent` ids are preserved | PASS |
-| Schema migration | A simulated v1 database reopens as v2 with token-expiry and idempotency structures while preserving missions and token hashes | PASS |
+| Schema migration | A simulated v1 database reopens as v3 with token-expiry, idempotency, and event-sequence structures while preserving missions, events, and token hashes | PASS |
 | Backup and restore | Online backup passes integrity checks; restore drill preserves tenant/token/mission/event counts | PASS |
 | Restart recovery | Mission, event, idempotency, and token data survive close/reopen; transition continues from persisted version | PASS |
 | Error hygiene | Internal failure returns generic `500` without details; responses do not echo the token | PASS |
@@ -70,12 +72,12 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 | Command | Exit | Result |
 | --- | --- | --- |
 | `npm ci --ignore-scripts` | 0 | Locked install completed; 0 vulnerabilities |
-| `npm run verify` | 0 | Lint, strict typecheck, 104/104 tests, core+API build, core smoke |
-| `npm test` | 0 | 8 files, 104 tests (78 unit + 26 integration) |
+| `npm run verify` | 0 | Lint, strict typecheck, 105/105 tests, core+API build, core smoke |
+| `npm test` | 0 | 8 files, 105 tests (78 unit + 27 integration) |
 | `npm run build` | 0 | `@agency/core` and `@agency/api` emitted to `dist` |
 | `npm audit --audit-level=high` | 0 | `found 0 vulnerabilities` |
 | Live HTTP smoke | 0 | `/healthz` `ok`; token expiry reported; idempotent create replayed with the same mission id; trace id preserved; audit export returned NDJSON; metrics endpoint returned Prometheus text |
-| Backup CLI smoke | 0 | Schema v2 backup, integrity `ok`, 118784 bytes; restore drill verified 1 tenant and 1 token, then removed the temporary copy |
+| Backup CLI smoke | 0 | Schema v3 backup, integrity `ok`, 131072 bytes; restore drill verified 1 tenant and 1 token, then removed the temporary copy |
 | Log hygiene smoke | 0 | Authorization token absent from info-level output |
 | Markdown link check | 0 | 0 broken local links |
 | Manual secret-pattern scan | 0 | No matches |
