@@ -489,7 +489,7 @@ export function exportEvents(
         aggregate_type, aggregate_id, correlation_id, causation_id, payload_json
       FROM domain_events
       WHERE ${conditions.join(" AND ")}
-      ORDER BY occurred_at ASC, event_id ASC
+      ORDER BY occurred_at ASC, seq ASC
       LIMIT ?
     `)
     .all(...params, filter.limit) as unknown as EventRow[];
@@ -528,7 +528,7 @@ export function listEvents(
         aggregate_type, aggregate_id, correlation_id, causation_id, payload_json
       FROM domain_events
       WHERE ${where}
-      ORDER BY occurred_at ASC, event_id ASC
+      ORDER BY occurred_at ASC, seq ASC
       LIMIT ? OFFSET ?
     `)
     .all(...params, filter.limit, filter.offset) as unknown as EventRow[];

@@ -4,7 +4,7 @@ import { DatabaseSync } from "node:sqlite";
 
 export type Database = DatabaseSync;
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 export function openDatabase(databasePath: string): Database {
   if (typeof databasePath !== "string" || databasePath.trim() === "") {
@@ -195,6 +195,45 @@ function migrate(db: Database): void {
 
         CREATE INDEX idx_idempotency_expires
           ON idempotency_keys (expires_at);
+      `);
+    }
+
+    if (current < 3) {
+      db.exec(`
+        CREATE TABLE domain_events_v3 (
+          seq INTEGER PRIMARY KEY AUTOINCREMENT,
+          event_id TEXT NOT NULL UNIQUE,
+          tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+          aggregate_type TEXT NOT NULL,
+          aggregate_id TEXT NOT NULL,
+          event_type TEXT NOT NULL,
+          schema_version INTEGER NOT NULL CHECK (schema_version = 1),
+          occurred_at TEXT NOT NULL,
+          actor_type TEXT NOT NULL,
+          actor_id TEXT,
+          correlation_id TEXT,
+          causation_id TEXT,
+          payload_json TEXT NOT NULL CHECK (json_valid(payload_json))
+        ) STRICT;
+
+        INSERT INTO domain_events_v3
+          (event_id, tenant_id, aggregate_type, aggregate_id, event_type,
+           schema_version, occurred_at, actor_type, actor_id, correlation_id,
+           causation_id, payload_json)
+        SELECT
+          event_id, tenant_id, aggregate_type, aggregate_id, event_type,
+          schema_version, occurred_at, actor_type, actor_id, correlation_id,
+          causation_id, payload_json
+        FROM domain_events
+        ORDER BY rowid;
+
+        DROP TABLE domain_events;
+        ALTER TABLE domain_events_v3 RENAME TO domain_events;
+
+        CREATE INDEX idx_events_tenant_aggregate
+          ON domain_events (tenant_id, aggregate_type, aggregate_id, occurred_at, seq);
+        CREATE INDEX idx_events_tenant_occurred
+          ON domain_events (tenant_id, occurred_at, seq);
       `);
     }
 

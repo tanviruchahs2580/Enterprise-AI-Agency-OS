@@ -15,7 +15,7 @@ npm ci --ignore-scripts
 npm run verify
 ```
 
-`npm run verify` runs lint, strict typecheck, 104 tests, build, and the core smoke test.
+`npm run verify` runs lint, strict typecheck, 105 tests, build, and the core smoke test.
 
 ## Provision a tenant and token
 
@@ -57,7 +57,7 @@ Environment variables:
 | `RATE_LIMIT_MAX` | `120` | Authenticated requests per token per window, 1-100000 |
 | `RATE_LIMIT_WINDOW_MS` | `60000` | Rate-limit window in milliseconds, 1000-3600000 |
 
-The database directory is created if missing. Migrations run automatically at startup. The schema version is stored in SQLite `user_version`; an older binary refuses to open a newer schema. Schema v2 adds token expiry and idempotency records.
+The database directory is created if missing. Migrations run automatically at startup. The schema version is stored in SQLite `user_version`; an older binary refuses to open a newer schema. Schema v2 added token expiry and idempotency records. Schema v3 adds a monotonic event sequence so same-millisecond events have deterministic order.
 
 ## Health checks
 
@@ -184,5 +184,5 @@ A restore is a destructive local operation. Confirm the target path and take a s
 - No TLS termination, WAF, distributed rate limiting, or IP allowlist in the API.
 - No OpenTelemetry export, trace backend, alerting, log aggregation, or retention automation.
 - No scheduled backup job, off-host replication, backup encryption, or tested disaster-recovery objective.
-- No CI execution, deployment pipeline, rollback automation, or environment separation.
+- No deployment pipeline, rollback automation, or environment separation. CI runs on push and pull requests, and branch protection requires the `verify` check.
 - No independent security review of the API foundation.

@@ -2,7 +2,7 @@
 
 ## A. Scope and identity
 
-| Field | Value |
+| Field | Value at initial audit |
 | --- | --- |
 | Target repository | `https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS` |
 | Local checkout | `C:\Users\DST\Documents\Default Project\Enterprise-AI-Agency-OS` |
@@ -14,7 +14,7 @@
 | Authorization used | A0 read-only inspection and A1 local reversible changes. No commit, push, deployment, external write, credential use, or production action. |
 | Out of scope | The parent `API-MODEL-ROUTER` checkout in the workspace root, which has unrelated uncommitted user work and was not modified. |
 
-The GitHub target contains no code. The only in-scope implementation is the local, uncommitted scaffold described below. This audit therefore cannot verify a published revision and does not claim that one exists.
+At the time of the initial audit the GitHub target contained no code, and the only in-scope implementation was the local, uncommitted scaffold described below. The current published revision, CI run, and branch protection are recorded in A.2. The findings below remain the historical record of the initial audit and do not claim that a published revision existed then.
 
 ## A.1 Post-audit update: API foundation
 
@@ -24,13 +24,25 @@ After the core remediation, a local API and persistence foundation was added and
 | --- | --- |
 | Runtime | Node 24 or 26+; Node 22 is unsupported because the API uses `node:sqlite` |
 | API | Fastify 5 service with bearer auth, roles/scopes, tenant isolation, Zod validation, and Helmet |
-| Persistence | SQLite schema v2 with `STRICT` tables, foreign keys, WAL, migrations, optimistic version checks, token expiry, and idempotency records |
+| Persistence | SQLite schema v3 with `STRICT` tables, foreign keys, WAL, migrations, optimistic version checks, token expiry, idempotency records, and a monotonic event sequence |
 | Hardening | Per-token rate limits, idempotent writes, audit export, Prometheus metrics, trace propagation, online backup, and restore drill |
-| Tests | 104 pass: 78 unit tests and 26 API integration/backup tests |
+| Tests | 105 pass: 78 unit tests and 27 API integration/backup tests |
 | Documentation | API contract, operations runbook, current threat model, ADR-002, and `API_FOUNDATION_VERIFICATION.md` |
-| Release decision | Still `NOT READY`; no worker, agent runtime, tools, approvals, deployment, or executed CI |
+| Release decision | Still `NOT READY`; CI and branch protection are recorded in A.2, but there is no worker, agent runtime, tools, approvals, or deployment |
 
 Current dispositions are in `REQUIREMENTS_EVIDENCE_MATRIX.md` and the API evidence is in `API_FOUNDATION_VERIFICATION.md`.
+
+## A.2 Post-gate update: published revision and CI
+
+The initial commit was published with explicit authorization after the local verification described in `API_FOUNDATION_VERIFICATION.md`.
+
+| Field | Current state |
+| --- | --- |
+| Verified code revision | `4814912ebf00cb0b9190ba85882eb88ed4022a2b` on PR #8; initial publication `99484db` on `main` |
+| CI | Run `40744277585` passed on `4814912` (PR #8); run `40742258363` passed on `99484db`; lint, typecheck, tests, build, smoke, and audit all green |
+| Branch protection | `verify` required (strict); admins enforced; linear history; force pushes and deletions disabled; conversation resolution required |
+| Working tree | Local `main` and PR #8 head at `4814912`; squash merge pending |
+| Release decision | Still `NOT READY`; CI and protection exist, but worker, agents, tools, approvals, deployment, and independent review do not |
 
 ## B. Inventory
 
@@ -67,7 +79,7 @@ Not present at baseline:
 | `npm audit` | 1 | 6 vulnerabilities: 2 critical, 1 high, 3 moderate in the Vitest/esbuild/tinypool development chain. |
 | `npm run build` | NOT RUN | No baseline build was executed before remediation. |
 | `npm run test:e2e` | NOT RUN | Script referenced a missing `tests/e2e/acceptance.ts`. |
-| CI workflow | NOT RUN | No workflow file existed; remote is empty. |
+| CI workflow | NOT RUN (initial audit) | No workflow file existed and the remote was empty. Current state is in A.2. |
 
 The typecheck pass at baseline did not mean the scaffold was healthy: it had no tests, no working lint pipeline, vulnerable development dependencies, and no runnable product.
 
@@ -87,7 +99,7 @@ The typecheck pass at baseline did not mean the scaffold was healthy: it had no 
 | F-010 | P2 | FIXED | Example environment file shipped default administrative and signing secrets |
 | F-011 | P2 | FIXED | Package scripts advertised non-existent applications and scripts |
 | F-012 | P2 | FIXED | Core package had no build, exports, or package boundary |
-| F-013 | P2 | FIXED (LOCAL) | No CI workflow existed |
+| F-013 | P2 | FIXED | No CI workflow existed; workflow now executes in CI |
 | F-014 | P3 | FIXED | No accurate README, audit evidence, threat model, or security policy |
 
 ### F-001: Empty test suite
@@ -98,9 +110,9 @@ Impact: every core contract was unverified. Lint and typecheck cannot detect inc
 
 Root cause: tests were declared in configuration but never written.
 
-Fix: added unit tests covering state graphs, transition errors, error serialization and retryability, event validation, identifiers, hash vectors, retry/backoff, and rate limiting. The suite now includes 78 unit and 26 integration tests.
+Fix: added unit tests covering state graphs, transition errors, error serialization and retryability, event validation, identifiers, hash vectors, retry/backoff, and rate limiting. The suite now includes 78 unit and 27 integration tests.
 
-Regression evidence: `tests/unit/state-machine.test.ts`, `tests/unit/errors.test.ts`, `tests/unit/events.test.ts`, `tests/unit/ids.test.ts`, `tests/unit/retry.test.ts`, and `tests/unit/rate-limit.test.ts`; the current suite passes 104/104, including 26 API integration and backup tests.
+Regression evidence: `tests/unit/state-machine.test.ts`, `tests/unit/errors.test.ts`, `tests/unit/events.test.ts`, `tests/unit/ids.test.ts`, `tests/unit/retry.test.ts`, and `tests/unit/rate-limit.test.ts`; the current suite passes 105/105, including 27 API integration and backup tests.
 
 Residual risk: no contract, E2E, browser, load, or tool-execution tests exist.
 
@@ -250,11 +262,11 @@ Evidence: no `.github/workflows` directory existed.
 
 Fix: added `.github/workflows/ci.yml` with read-only contents permission, checkout credentials disabled, SHA-pinned checkout and setup-node actions, Node 24.x, `npm ci --ignore-scripts`, lint, typecheck, test, build, a built-package smoke test, and `npm audit --audit-level=high`. Added a weekly Dependabot configuration for npm and GitHub Actions.
 
-Regression evidence: workflow file exists. It has not executed because the local repository has no commits and the remote is empty.
+Regression evidence: the workflow exists and executed successfully in run `40742258363` on commit `99484db`; all steps passed.
 
-Status: `FIXED (LOCAL)`; CI execution is `NOT RUN`.
+Status: `FIXED`; CI execution is `PASS`.
 
-Residual risk: no SBOM, artifact signing, or provenance attestation exists; branch protection and required checks are not configured.
+Residual risk: no SBOM, artifact signing, or provenance attestation exists. Branch protection now requires the `verify` check, but there is no deployment pipeline or environment protection.
 
 ### F-014: Missing product and audit documentation
 
@@ -270,7 +282,7 @@ Residual risk: API and local operations documentation now exist, but deployment,
 | --- | --- | --- |
 | Product requirements and feature integrity | FAIL | Authenticated mission/task API exists; no end-to-end agency product |
 | Architecture and design quality | IN PROGRESS | Core package boundaries, state machines, and API service; no worker or provider contracts |
-| Code quality and maintainability | PASS (local scope) | Lint, strict typecheck, 104 tests, core+API build |
+| Code quality and maintainability | PASS (local scope) | Lint, strict typecheck, 105 tests, core+API build |
 | Testing and verification | IN PROGRESS | Unit and API integration tests; no E2E, load, or tool-execution tests |
 | API and backend quality | IN PROGRESS | Authenticated API, idempotency, rate limits, audit export; no worker or queue |
 | Database and data lifecycle | IN PROGRESS | SQLite schema, tenant isolation, online backup, retention, restore drill; no encryption |
@@ -298,13 +310,13 @@ Full dispositions and blockers are in `REQUIREMENTS_EVIDENCE_MATRIX.md`.
 
 `NOT READY`
 
-The core and API foundation are locally testable, but the repository is not a software-delivery system. It has no worker, agent runtime, tool/MCP execution, approvals, budgets, production database operations, executed CI, deployment, or production operational controls. The remote repository is empty and no commit was created.
+The core and API foundation are locally testable and now published with passing CI and branch protection, but the repository is not a software-delivery system. It has no worker, agent runtime, tool/MCP execution, approvals, budgets, production database operations, deployment, or production operational controls.
 
 ## G. Limitations
 
 - No independent human reviewer participated. A separate review pass is recorded in the final verification report.
-- No CI run exists; the workflow is untested on GitHub.
-- No commit, push, deployment, or remote configuration change occurred.
+- CI run `40742258363` passed on commit `99484db`; no deployment workflow exists.
+- Commit `99484db` was pushed to `origin/main` and branch protection was enabled with explicit authorization; no deployment occurred.
 - No browser, accessibility, performance, load, container, SAST, secret-scanning, or DAST evidence exists.
 - No live model provider or external integration was exercised.
 - The audit covers the local core and API foundation, not the parent `API-MODEL-ROUTER` repository.

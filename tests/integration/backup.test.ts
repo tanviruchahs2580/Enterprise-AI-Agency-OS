@@ -37,7 +37,7 @@ describe("backup and restore drill", () => {
     try {
       const backup = await createBackup(sourcePath, join(dir, "backups"));
       expect(backup.integrity).toBe("ok");
-      expect(backup.schemaVersion).toBe(2);
+      expect(backup.schemaVersion).toBe(3);
       expect(backup.tenants).toBe(1);
       expect(backup.tokens).toBe(1);
       expect(backup.missions).toBe(1);

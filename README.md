@@ -20,7 +20,7 @@ Implemented and tested:
 - Tenant-scoped audit export in JSON or NDJSON.
 - Prometheus text metrics, W3C trace-context propagation, and request/trace correlation headers.
 - SQLite persistence with foreign keys, migrations, WAL, strict tables, restart recovery, automated online backup, and a restore drill.
-- 104 unit and integration tests, including tenant isolation, denied transitions, scope failures, stale versions, idempotency replay/conflicts and restart persistence, token expiry, rate limiting, audit export, metrics/traces, schema migration, restart recovery, and backup/restore.
+- 105 unit and integration tests, including tenant isolation, denied transitions, scope failures, stale versions, idempotency replay/conflicts and restart persistence, token expiry, rate limiting, audit export, metrics/traces, deterministic event ordering, schema migration, restart recovery, and backup/restore.
 
 Not implemented:
 
@@ -30,7 +30,7 @@ Not implemented:
 - Event producer authentication, event signatures, consumer delivery guarantees, or a tamper-evident audit chain.
 - Contract, end-to-end, browser, load, or tool-execution test suites.
 
-The repository has no commits yet. GitHub remote `tanviruchahs2580/Enterprise-AI-Agency-OS` is empty. All current files are local and uncommitted.
+The repository is published on `main`; the verified code revision is `4814912`, delivered through PR #8. CI passes on GitHub Actions, and branch protection requires the `verify` check. There is no release or deployment.
 
 ## Requirements
 
@@ -140,7 +140,7 @@ SQLite is a local persistence adapter. It has no encryption at rest, high availa
 
 `NOT READY`
 
-The applicable release gates are not satisfied because the repository has no worker, agent runtime, tool execution, approvals, budgets, deployment controls, executed CI evidence, distributed observability, or production database operations. Basic metrics, traces, audit export, and backup tooling exist, but they are local-only. See:
+The applicable release gates are not satisfied because the repository has no worker, agent runtime, tool execution, approvals, budgets, deployment controls, distributed observability, or production database operations. Basic metrics, traces, audit export, and backup tooling exist, but they are local-only. CI and branch protection are recorded in `API_FOUNDATION_VERIFICATION.md`. See:
 
 - `docs/audit/ENTERPRISE_ENGINEERING_AUDIT.md`
 - `docs/audit/REQUIREMENTS_EVIDENCE_MATRIX.md`

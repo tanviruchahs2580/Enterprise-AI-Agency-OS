@@ -4,16 +4,16 @@
 
 `NOT READY`
 
-The API and persistence foundation is implemented and locally verified, but the repository is still not a production deliverable. It has no worker, agent runtime, tool/MCP execution, approvals, budgets, distributed observability, deployment controls, production database operations, or executed CI.
+The API and persistence foundation is implemented, published, and verified locally and in CI, but the repository is still not a production deliverable. It has no worker, agent runtime, tool/MCP execution, approvals, budgets, distributed observability, deployment controls, production database operations, or independent review.
 
 | Field | Value |
 | --- | --- |
 | Target | `https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS` |
 | Local path | `C:\Users\DST\Documents\Default Project\Enterprise-AI-Agency-OS` |
-| Revision | No commit SHA. `main` is unborn; all files are untracked. |
-| Verified at | 2026-10-28T00:21+06:00 |
-| Runtime | Node 24.19.0, npm 11.17.0 |
-| Authorization | A0/A1 only. No commit, push, deployment, or external write. |
+| Revision | Verified code revision `4814912ebf00cb0b9190ba85882eb88ed4022a2b` on PR #8; evidence commit follows |
+| Verified at | 2026-10-29T00:21+06:00 |
+| Runtime | Node 24.19.0, npm 11.17.0; CI on Node 24.x |
+| Authorization | A0/A1 for inspection and local changes; explicit A2 authorization for the initial commit, push, CI execution, and branch protection |
 
 This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPORT.md`. The core baseline evidence in that report remains valid for the revision it describes.
 
@@ -23,11 +23,12 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 - Added `@agency/api`, a Fastify 5 service with Zod validation and Helmet headers.
 - Added SQLite persistence with:
   - `STRICT` tables, foreign keys, composite tenant/mission ownership, and indexes.
-  - Automatic schema migration through `PRAGMA user_version`; schema v2 adds token expiry and idempotency records.
+  - Automatic schema migration through `PRAGMA user_version`; schema v2 adds token expiry and idempotency records, and schema v3 adds a monotonic event sequence.
   - WAL, `synchronous=FULL`, busy timeout, disabled extension loading, and `trusted_schema=OFF`.
 - Added bearer-token authentication with 256-bit random tokens, SHA-256 hash storage, roles, scopes, revocation, and a 30-day default expiry.
 - Added tenant-scoped mission and task creation plus transactional transitions with optimistic version checks.
 - Added durable domain events written in the same transaction as each state change.
+- Added a monotonic event sequence so same-millisecond events are returned in deterministic insertion order.
 - Added strict payload schemas for `MissionCreated`, `MissionStateChanged`, `TaskCreated`, and `TaskStateChanged`.
 - Added tenant-, token-, operation-, and request-hash-scoped idempotency keys with a 24-hour replay window and conflict detection on mission/task creates and transitions.
 - Added per-token in-memory rate limiting with `x-ratelimit-*` headers, `429 RATE_LIMITED`, and `Retry-After`.
@@ -38,7 +39,7 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 - Added health/readiness endpoints, structured error envelopes, server-generated request ids, body limits, and authorization-header redaction.
 - Added provisioning and revocation CLIs.
 - Added API contract, operations runbook, ADR-002, and updated threat model.
-- Added 104 tests: 78 unit and 26 API integration/backup tests.
+- Added 105 tests: 78 unit and 27 API integration/backup tests.
 
 ## C. Acceptance evidence
 
@@ -58,8 +59,9 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 | Token expiry | Past-expiry tokens return `401`; active tokens report `expiresAt`; `null` expiry is supported for local provisioning | PASS |
 | Rate limiting | Per-token budget returns `429` with `Retry-After`; a second token is unaffected | PASS |
 | Audit export | NDJSON and JSON exports are tenant-scoped, bounded, and exclude another tenant's events | PASS |
+| Event ordering | Same-millisecond events are returned in insertion order using a monotonic sequence, independent of event id | PASS |
 | Metrics and traces | Admin metrics expose Prometheus counters/histograms; valid `traceparent` ids are preserved | PASS |
-| Schema migration | A simulated v1 database reopens as v2 with token-expiry and idempotency structures while preserving missions and token hashes | PASS |
+| Schema migration | A simulated v1 database reopens as v3 with token-expiry, idempotency, and event-sequence structures while preserving missions, events, and token hashes | PASS |
 | Backup and restore | Online backup passes integrity checks; restore drill preserves tenant/token/mission/event counts | PASS |
 | Restart recovery | Mission, event, idempotency, and token data survive close/reopen; transition continues from persisted version | PASS |
 | Error hygiene | Internal failure returns generic `500` without details; responses do not echo the token | PASS |
@@ -70,16 +72,31 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 | Command | Exit | Result |
 | --- | --- | --- |
 | `npm ci --ignore-scripts` | 0 | Locked install completed; 0 vulnerabilities |
-| `npm run verify` | 0 | Lint, strict typecheck, 104/104 tests, core+API build, core smoke |
-| `npm test` | 0 | 8 files, 104 tests (78 unit + 26 integration) |
+| `npm run verify` | 0 | Lint, strict typecheck, 105/105 tests, core+API build, core smoke |
+| `npm test` | 0 | 8 files, 105 tests (78 unit + 27 integration) |
 | `npm run build` | 0 | `@agency/core` and `@agency/api` emitted to `dist` |
 | `npm audit --audit-level=high` | 0 | `found 0 vulnerabilities` |
 | Live HTTP smoke | 0 | `/healthz` `ok`; token expiry reported; idempotent create replayed with the same mission id; trace id preserved; audit export returned NDJSON; metrics endpoint returned Prometheus text |
-| Backup CLI smoke | 0 | Schema v2 backup, integrity `ok`, 118784 bytes; restore drill verified 1 tenant and 1 token, then removed the temporary copy |
+| Backup CLI smoke | 0 | Schema v3 backup, integrity `ok`, 131072 bytes; restore drill verified 1 tenant and 1 token, then removed the temporary copy |
 | Log hygiene smoke | 0 | Authorization token absent from info-level output |
 | Markdown link check | 0 | 0 broken local links |
 | Manual secret-pattern scan | 0 | No matches |
-| `git status --short --branch` | 0 | `No commits yet on main`; all files untracked |
+| `git commit` (initial) | 0 | Root commit `99484db`; 58 files, 11,278 insertions |
+| `git push -u origin main` | 0 | Published `main`; `origin/main` at `99484db` |
+| `gh run watch 40742258363` | 0 | CI `verify` passed in 21 seconds; all steps green |
+| Branch protection update | 0 | `verify` required (strict); admins enforced; linear history; no force push or deletion; conversation resolution |
+| `git commit` (ordering fix) | 0 | `4814912`; 11 files, 173 insertions, 26 deletions |
+| `git push origin HEAD:docs/publish-evidence` | 0 | Published the fix to PR #8; branch head `4814912` |
+| `gh run watch 40744277585` | 0 | PR CI `verify` passed in 26 seconds; push run `40744268003` also passed |
+| `git status --short --branch` | 0 | Clean before the evidence update; local `main` and PR #8 head at `4814912` |
+
+### Published revision and CI
+
+- Verified code revision: `4814912ebf00cb0b9190ba85882eb88ed4022a2b` (PR #8)
+- CI run: [40744277585](https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS/actions/runs/40744277585) — success; push run [40744268003](https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS/actions/runs/40744268003) also passed
+- Initial publication: `99484db9cc18c3aac56017202f95452f284f7535` on `main`; CI run [40742258363](https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS/actions/runs/40742258363) passed
+- Branch protection: `main` requires the `verify` status check with strict up-to-date enforcement; protection applies to administrators; force pushes and branch deletion are disabled.
+- Merge note: PR #8 is squash-merged, so the `main` merge commit differs from the tested PR head. This report is anchored to the tested code revision.
 
 ## E. Security properties
 
@@ -106,7 +123,7 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 - No TLS termination, distributed rate limiting, WAF, IP allowlist, or authentication-failure throttling.
 - No OpenTelemetry export, trace backend, alerting, log aggregation, or retention automation.
 - No scheduled or off-host backup, backup encryption, disaster-recovery objective, or key management.
-- No deployment environments, rollout/rollback automation, executed GitHub Actions run, commit SHA, or branch-protection evidence.
+- No deployment environments or rollout/rollback automation. CI and branch protection are recorded, but there is no deployment pipeline.
 - No independent review of the API foundation has been performed.
 - SQLite is single-node and synchronous; it is not a production database substitute.
 - Task transitions are not coupled to mission terminal state; a task under a completed or cancelled mission can still transition.
@@ -114,8 +131,8 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 
 ## G. Next verification gate
 
-1. Commit the revision, execute CI, and enable branch protection. This requires explicit authorization and is not performed by this report.
-2. Re-run this report against a recorded commit SHA and attach the CI run.
+1. Completed: initial commit `99484db`, CI run `40742258363`, and branch protection on `main`. The deterministic event-ordering fix is `4814912`, verified by CI run `40744277585` and published through PR #8. These were explicitly authorized and are recorded above.
+2. This report is anchored to the tested PR head. Re-run it for every later commit that changes code or controls.
 3. Add the worker/job runtime with durable retries, cancellation, and idempotent handlers.
 4. Add agent, tool/MCP, approval, and budget controls with independent review.
 5. Replace local rate-limit/idempotency state with durable, shared infrastructure before horizontal scaling.
