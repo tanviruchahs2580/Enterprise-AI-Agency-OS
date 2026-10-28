@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-No version has been released. The repository is an uncommitted core and API scaffold and is not deployed.
+No version has been released. The repository is a committed local core and API foundation and is not deployed.
 
 ## Reporting a vulnerability
 

@@ -184,5 +184,5 @@ A restore is a destructive local operation. Confirm the target path and take a s
 - No TLS termination, WAF, distributed rate limiting, or IP allowlist in the API.
 - No OpenTelemetry export, trace backend, alerting, log aggregation, or retention automation.
 - No scheduled backup job, off-host replication, backup encryption, or tested disaster-recovery objective.
-- No CI execution, deployment pipeline, rollback automation, or environment separation.
+- No deployment pipeline, rollback automation, or environment separation. CI runs on push and pull requests, and branch protection requires the `verify` check.
 - No independent security review of the API foundation.

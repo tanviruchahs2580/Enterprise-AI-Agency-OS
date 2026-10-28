@@ -4,16 +4,16 @@
 
 `NOT READY`
 
-The API and persistence foundation is implemented and locally verified, but the repository is still not a production deliverable. It has no worker, agent runtime, tool/MCP execution, approvals, budgets, distributed observability, deployment controls, production database operations, or executed CI.
+The API and persistence foundation is implemented, published, and verified locally and in CI, but the repository is still not a production deliverable. It has no worker, agent runtime, tool/MCP execution, approvals, budgets, distributed observability, deployment controls, production database operations, or independent review.
 
 | Field | Value |
 | --- | --- |
 | Target | `https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS` |
 | Local path | `C:\Users\DST\Documents\Default Project\Enterprise-AI-Agency-OS` |
-| Revision | No commit SHA. `main` is unborn; all files are untracked. |
-| Verified at | 2026-10-28T00:21+06:00 |
-| Runtime | Node 24.19.0, npm 11.17.0 |
-| Authorization | A0/A1 only. No commit, push, deployment, or external write. |
+| Revision | Verified code revision `99484db9cc18c3aac56017202f95452f284f7535` on `main`; evidence committed separately |
+| Verified at | 2026-10-29T00:09+06:00 |
+| Runtime | Node 24.19.0, npm 11.17.0; CI on Node 24.x |
+| Authorization | A0/A1 for inspection and local changes; explicit A2 authorization for the initial commit, push, CI execution, and branch protection |
 
 This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPORT.md`. The core baseline evidence in that report remains valid for the revision it describes.
 
@@ -79,7 +79,17 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 | Log hygiene smoke | 0 | Authorization token absent from info-level output |
 | Markdown link check | 0 | 0 broken local links |
 | Manual secret-pattern scan | 0 | No matches |
-| `git status --short --branch` | 0 | `No commits yet on main`; all files untracked |
+| `git commit` | 0 | Root commit `99484db`; 58 files, 11,278 insertions |
+| `git push -u origin main` | 0 | Published `main`; `origin/main` at `99484db` |
+| `gh run watch 40742258363` | 0 | CI `verify` passed in 21 seconds; all steps green |
+| Branch protection update | 0 | `verify` required (strict); admins enforced; linear history; no force push or deletion; conversation resolution |
+| `git status --short --branch` | 0 | Clean tree on `main`, tracking `origin/main` at `99484db` |
+
+### Published revision and CI
+
+- Commit: `99484db9cc18c3aac56017202f95452f284f7535`
+- CI run: [40742258363](https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS/actions/runs/40742258363) — success
+- Branch protection: `main` requires the `verify` status check with strict up-to-date enforcement; protection applies to administrators; force pushes and branch deletion are disabled.
 
 ## E. Security properties
 
@@ -106,7 +116,7 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 - No TLS termination, distributed rate limiting, WAF, IP allowlist, or authentication-failure throttling.
 - No OpenTelemetry export, trace backend, alerting, log aggregation, or retention automation.
 - No scheduled or off-host backup, backup encryption, disaster-recovery objective, or key management.
-- No deployment environments, rollout/rollback automation, executed GitHub Actions run, commit SHA, or branch-protection evidence.
+- No deployment environments or rollout/rollback automation. CI and branch protection are recorded, but there is no deployment pipeline.
 - No independent review of the API foundation has been performed.
 - SQLite is single-node and synchronous; it is not a production database substitute.
 - Task transitions are not coupled to mission terminal state; a task under a completed or cancelled mission can still transition.
@@ -114,8 +124,8 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 
 ## G. Next verification gate
 
-1. Commit the revision, execute CI, and enable branch protection. This requires explicit authorization and is not performed by this report.
-2. Re-run this report against a recorded commit SHA and attach the CI run.
+1. Completed: commit `99484db`, CI run `40742258363`, and branch protection on `main`. These were explicitly authorized and are recorded above.
+2. This report is now recorded against the published commit. Re-run it for every later commit that changes code or controls.
 3. Add the worker/job runtime with durable retries, cancellation, and idempotent handlers.
 4. Add agent, tool/MCP, approval, and budget controls with independent review.
 5. Replace local rate-limit/idempotency state with durable, shared infrastructure before horizontal scaling.

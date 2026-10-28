@@ -1,11 +1,11 @@
 # Requirements-to-Evidence Matrix
 
-Scope: local `Enterprise-AI-Agency-OS` core and API foundation. The GitHub target is empty. A `N/A` disposition means the corresponding capability does not exist and therefore cannot be assessed as implemented. It is not a pass.
+Scope: `Enterprise-AI-Agency-OS` core and API foundation. The GitHub target is published at commit `99484db` on `main`. A `N/A` disposition means the corresponding capability does not exist and therefore cannot be assessed as implemented. It is not a pass.
 
 | requirement_id | audit_area | criterion | applicability | status | evidence_ref | finding_ids | owner | notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| REPO-01 | Repository identity | Target URL, branch, commit, and working-tree state recorded | Applicable | FAIL | `docs/audit/ENTERPRISE_ENGINEERING_AUDIT.md` A | F-014 | Repository steward | Remote is empty; local `main` has no commits; all files untracked |
-| REPO-02 | Baseline | Locked install, lint, typecheck, tests, build assessed | Applicable | PASS | Audit C; `API_FOUNDATION_VERIFICATION.md` D | F-001, F-002, F-006, F-012 | Engineering lead | `npm ci`, lint, typecheck, 104 tests, build, and smoke pass locally; no committed baseline |
+| REPO-01 | Repository identity | Target URL, branch, commit, and working-tree state recorded | Applicable | PASS | `API_FOUNDATION_VERIFICATION.md` A/D | F-014 | Repository steward | Remote `main` contains verified code revision `99484db`; clean working tree; CI run `40742258363` passed |
+| REPO-02 | Baseline | Locked install, lint, typecheck, tests, build assessed | Applicable | PASS | Audit C; `API_FOUNDATION_VERIFICATION.md` D | F-001, F-002, F-006, F-012 | Engineering lead | `npm ci`, lint, typecheck, 104 tests, build, and smoke pass locally and in CI at `99484db` |
 | PROD-01 | Product | Advertised features map to working user journeys | Applicable | FAIL | README; Audit B | F-011 | Product owner | Core contracts and a local API exist; no end-to-end agency product |
 | PROD-02 | Product | Loading, empty, error, permission, timeout, offline states | Not applicable | N/A | No UI | - | Product owner | No user-facing surface; API error and permission states are tested |
 | ARCH-01 | Architecture | Modular package boundary with explicit exports | Applicable | PASS | `packages/core/package.json`; `src/index.ts`; `npm run build` | F-012 | Architect | Core package builds with declarations |
@@ -44,7 +44,7 @@ Scope: local `Enterprise-AI-Agency-OS` core and API foundation. The GitHub targe
 | EVAL-01 | LLM quality | Evaluation sets, regression thresholds, adversarial tests | Not applicable | N/A | No models | - | AI quality lead | Future scope |
 | OBS-01 | Operations | Logs, metrics, traces, health, alerts, runbooks | Applicable | IN PROGRESS | `server.ts`; `metrics.ts`; `trace.ts`; `docs/operations/RUNBOOK.md` | - | SRE | Structured logs, redaction, health/readiness, Prometheus metrics, trace-context propagation, and runbook; no alerting or trace backend |
 | PERF-01 | Performance | Measured latency, cost, capacity, budgets | Applicable | NOT RUN | No benchmark or load test | - | SRE | No performance evidence |
-| CI-01 | CI/CD | Workflow validates lint, typecheck, tests, build, audit | Applicable | IN PROGRESS | `.github/workflows/ci.yml` | F-013 | Release engineer | Added locally; never executed on GitHub |
+| CI-01 | CI/CD | Workflow validates lint, typecheck, tests, build, audit | Applicable | PASS | `.github/workflows/ci.yml`; `API_FOUNDATION_VERIFICATION.md` D | F-013 | Release engineer | Executed successfully on `99484db` (run `40742258363`); all steps passed |
 | CI-02 | CI/CD | Least-privilege tokens and pinned actions | Applicable | PASS | `.github/workflows/ci.yml` | F-013 | Release engineer | Contents read only; actions SHA-pinned; install scripts disabled |
 | DEPLOY-01 | Deployment | Environment separation, health checks, rollback | Applicable | IN PROGRESS | `/healthz`; `/readyz`; runbook | - | Release engineer | Health checks and local runbook; no environments or rollback |
 | DOC-01 | Documentation | README matches verified implementation | Applicable | PASS | `README.md` | F-014 | Documentation steward | States core/API scope and limitations |
@@ -53,9 +53,9 @@ Scope: local `Enterprise-AI-Agency-OS` core and API foundation. The GitHub targe
 
 ## Disposition counts
 
-- PASS: 19
-- FAIL: 2
-- IN PROGRESS: 10
+- PASS: 21
+- FAIL: 1
+- IN PROGRESS: 9
 - NOT RUN: 2
 - N/A: 13
 
