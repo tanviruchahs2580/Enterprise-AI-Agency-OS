@@ -1,11 +1,11 @@
 # Requirements-to-Evidence Matrix
 
-Scope: `Enterprise-AI-Agency-OS` core and API foundation. The GitHub target is published at commit `99484db` on `main`. A `N/A` disposition means the corresponding capability does not exist and therefore cannot be assessed as implemented. It is not a pass.
+Scope: `Enterprise-AI-Agency-OS` core and API foundation. The GitHub target is published at commit `99484db` on `main`, and the verified code revision `4814912` is delivered through PR #8. A `N/A` disposition means the corresponding capability does not exist and therefore cannot be assessed as implemented. It is not a pass.
 
 | requirement_id | audit_area | criterion | applicability | status | evidence_ref | finding_ids | owner | notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| REPO-01 | Repository identity | Target URL, branch, commit, and working-tree state recorded | Applicable | PASS | `API_FOUNDATION_VERIFICATION.md` A/D | F-014 | Repository steward | Remote `main` contains verified code revision `99484db`; clean working tree; CI run `40742258363` passed |
-| REPO-02 | Baseline | Locked install, lint, typecheck, tests, build assessed | Applicable | PASS | Audit C; `API_FOUNDATION_VERIFICATION.md` D | F-001, F-002, F-006, F-012 | Engineering lead | `npm ci`, lint, typecheck, 105 tests, build, and smoke pass locally and in CI at `99484db` |
+| REPO-01 | Repository identity | Target URL, branch, commit, and working-tree state recorded | Applicable | PASS | `API_FOUNDATION_VERIFICATION.md` A/D | F-014 | Repository steward | Verified code revision `4814912` on PR #8 (CI run `40744277585`); initial `main` publication `99484db` (run `40742258363`) |
+| REPO-02 | Baseline | Locked install, lint, typecheck, tests, build assessed | Applicable | PASS | Audit C; `API_FOUNDATION_VERIFICATION.md` D | F-001, F-002, F-006, F-012 | Engineering lead | `npm ci`, lint, typecheck, 105 tests, build, and smoke pass locally and in CI at `4814912` |
 | PROD-01 | Product | Advertised features map to working user journeys | Applicable | FAIL | README; Audit B | F-011 | Product owner | Core contracts and a local API exist; no end-to-end agency product |
 | PROD-02 | Product | Loading, empty, error, permission, timeout, offline states | Not applicable | N/A | No UI | - | Product owner | No user-facing surface; API error and permission states are tested |
 | ARCH-01 | Architecture | Modular package boundary with explicit exports | Applicable | PASS | `packages/core/package.json`; `src/index.ts`; `npm run build` | F-012 | Architect | Core package builds with declarations |
@@ -21,7 +21,7 @@ Scope: `Enterprise-AI-Agency-OS` core and API foundation. The GitHub target is p
 | API-01 | API | Authentication, authorization, tenant scoping, object access | Applicable | PASS | `apps/api/src/auth.ts`; `repository.ts`; integration tests | - | Backend lead | Bearer auth, scopes, and tenant-scoped object access are tested |
 | API-02 | API | Input/output schemas, status codes, pagination, rate limits | Applicable | PASS | `validation.ts`; `server.ts`; integration tests | - | Backend lead | Zod schemas, status codes, offset pagination, per-token rate limits, and Retry-After |
 | API-03 | API | Durable jobs, retries, idempotency, cancellation | Applicable | IN PROGRESS | `idempotency.ts`; `packages/core/src/retry.ts`; integration tests | - | Backend lead | Durable idempotency and retry/backoff helpers exist; no worker, queue, or cancellation |
-| DB-01 | Data | Schema, constraints, migrations, tenant isolation | Applicable | PASS | `apps/api/src/db.ts`; integration tests | - | Data lead | Strict tables, FKs, v1-to-v3 migration, tenant predicates |
+| DB-01 | Data | Schema, constraints, migrations, tenant isolation | Applicable | PASS | `apps/api/src/db.ts`; integration tests | - | Data lead | Strict tables, FKs, v1-to-v3 migration, deterministic event sequence, tenant predicates |
 | DB-02 | Data | Backup, restore, retention, encryption | Applicable | IN PROGRESS | `backup-lib.ts`; `backup.ts`; `restore-drill.ts`; integration tests | - | Data lead | Online backup, integrity verification, retention pruning, and restore drill; no encryption or scheduler |
 | AUTH-01 | Identity | Password, session, token, MFA, revocation | Applicable | IN PROGRESS | `apps/api/src/auth.ts`; `provisioning.ts` | - | Security lead | Bearer tokens, 30-day expiry, and revocation; no password, session, or MFA |
 | AUTH-02 | Identity | Role/permission matrix and default deny | Applicable | PASS | `apps/api/src/auth.ts`; integration tests | - | Security lead | ADMIN/OPERATOR/VIEWER scopes; missing scope returns 403 |
@@ -44,7 +44,7 @@ Scope: `Enterprise-AI-Agency-OS` core and API foundation. The GitHub target is p
 | EVAL-01 | LLM quality | Evaluation sets, regression thresholds, adversarial tests | Not applicable | N/A | No models | - | AI quality lead | Future scope |
 | OBS-01 | Operations | Logs, metrics, traces, health, alerts, runbooks | Applicable | IN PROGRESS | `server.ts`; `metrics.ts`; `trace.ts`; `docs/operations/RUNBOOK.md` | - | SRE | Structured logs, redaction, health/readiness, Prometheus metrics, trace-context propagation, and runbook; no alerting or trace backend |
 | PERF-01 | Performance | Measured latency, cost, capacity, budgets | Applicable | NOT RUN | No benchmark or load test | - | SRE | No performance evidence |
-| CI-01 | CI/CD | Workflow validates lint, typecheck, tests, build, audit | Applicable | PASS | `.github/workflows/ci.yml`; `API_FOUNDATION_VERIFICATION.md` D | F-013 | Release engineer | Executed successfully on `99484db` (run `40742258363`); all steps passed |
+| CI-01 | CI/CD | Workflow validates lint, typecheck, tests, build, audit | Applicable | PASS | `.github/workflows/ci.yml`; `API_FOUNDATION_VERIFICATION.md` D | F-013 | Release engineer | Executed successfully on `4814912` (run `40744277585`) and `99484db` (run `40742258363`); all steps passed |
 | CI-02 | CI/CD | Least-privilege tokens and pinned actions | Applicable | PASS | `.github/workflows/ci.yml` | F-013 | Release engineer | Contents read only; actions SHA-pinned; install scripts disabled |
 | DEPLOY-01 | Deployment | Environment separation, health checks, rollback | Applicable | IN PROGRESS | `/healthz`; `/readyz`; runbook | - | Release engineer | Health checks and local runbook; no environments or rollback |
 | DOC-01 | Documentation | README matches verified implementation | Applicable | PASS | `README.md` | F-014 | Documentation steward | States core/API scope and limitations |

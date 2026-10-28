@@ -38,10 +38,10 @@ The initial commit was published with explicit authorization after the local ver
 
 | Field | Current state |
 | --- | --- |
-| Commit | `99484db9cc18c3aac56017202f95452f284f7535` on `main` |
-| CI | Run `40742258363` passed on `99484db`; lint, typecheck, tests, build, smoke, and audit all green |
+| Verified code revision | `4814912ebf00cb0b9190ba85882eb88ed4022a2b` on PR #8; initial publication `99484db` on `main` |
+| CI | Run `40744277585` passed on `4814912` (PR #8); run `40742258363` passed on `99484db`; lint, typecheck, tests, build, smoke, and audit all green |
 | Branch protection | `verify` required (strict); admins enforced; linear history; force pushes and deletions disabled; conversation resolution required |
-| Working tree | Clean and tracking `origin/main` |
+| Working tree | Local `main` and PR #8 head at `4814912`; squash merge pending |
 | Release decision | Still `NOT READY`; CI and protection exist, but worker, agents, tools, approvals, deployment, and independent review do not |
 
 ## B. Inventory

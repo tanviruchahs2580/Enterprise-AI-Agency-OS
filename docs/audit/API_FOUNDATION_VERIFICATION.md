@@ -10,8 +10,8 @@ The API and persistence foundation is implemented, published, and verified local
 | --- | --- |
 | Target | `https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS` |
 | Local path | `C:\Users\DST\Documents\Default Project\Enterprise-AI-Agency-OS` |
-| Revision | Verified code revision `99484db9cc18c3aac56017202f95452f284f7535` on `main`; evidence committed separately |
-| Verified at | 2026-10-29T00:19+06:00 |
+| Revision | Verified code revision `4814912ebf00cb0b9190ba85882eb88ed4022a2b` on PR #8; evidence commit follows |
+| Verified at | 2026-10-29T00:21+06:00 |
 | Runtime | Node 24.19.0, npm 11.17.0; CI on Node 24.x |
 | Authorization | A0/A1 for inspection and local changes; explicit A2 authorization for the initial commit, push, CI execution, and branch protection |
 
@@ -81,17 +81,22 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 | Log hygiene smoke | 0 | Authorization token absent from info-level output |
 | Markdown link check | 0 | 0 broken local links |
 | Manual secret-pattern scan | 0 | No matches |
-| `git commit` | 0 | Root commit `99484db`; 58 files, 11,278 insertions |
+| `git commit` (initial) | 0 | Root commit `99484db`; 58 files, 11,278 insertions |
 | `git push -u origin main` | 0 | Published `main`; `origin/main` at `99484db` |
 | `gh run watch 40742258363` | 0 | CI `verify` passed in 21 seconds; all steps green |
 | Branch protection update | 0 | `verify` required (strict); admins enforced; linear history; no force push or deletion; conversation resolution |
-| `git status --short --branch` | 0 | Clean tree on `main`, tracking `origin/main` at `99484db` |
+| `git commit` (ordering fix) | 0 | `4814912`; 11 files, 173 insertions, 26 deletions |
+| `git push origin HEAD:docs/publish-evidence` | 0 | Published the fix to PR #8; branch head `4814912` |
+| `gh run watch 40744277585` | 0 | PR CI `verify` passed in 26 seconds; push run `40744268003` also passed |
+| `git status --short --branch` | 0 | Clean before the evidence update; local `main` and PR #8 head at `4814912` |
 
 ### Published revision and CI
 
-- Commit: `99484db9cc18c3aac56017202f95452f284f7535`
-- CI run: [40742258363](https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS/actions/runs/40742258363) — success
+- Verified code revision: `4814912ebf00cb0b9190ba85882eb88ed4022a2b` (PR #8)
+- CI run: [40744277585](https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS/actions/runs/40744277585) — success; push run [40744268003](https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS/actions/runs/40744268003) also passed
+- Initial publication: `99484db9cc18c3aac56017202f95452f284f7535` on `main`; CI run [40742258363](https://github.com/tanviruchahs2580/Enterprise-AI-Agency-OS/actions/runs/40742258363) passed
 - Branch protection: `main` requires the `verify` status check with strict up-to-date enforcement; protection applies to administrators; force pushes and branch deletion are disabled.
+- Merge note: PR #8 is squash-merged, so the `main` merge commit differs from the tested PR head. This report is anchored to the tested code revision.
 
 ## E. Security properties
 
@@ -126,8 +131,8 @@ This report supersedes the core-only scope statement in `FINAL_VERIFICATION_REPO
 
 ## G. Next verification gate
 
-1. Completed: commit `99484db`, CI run `40742258363`, and branch protection on `main`. These were explicitly authorized and are recorded above.
-2. This report is now recorded against the published commit. Re-run it for every later commit that changes code or controls.
+1. Completed: initial commit `99484db`, CI run `40742258363`, and branch protection on `main`. The deterministic event-ordering fix is `4814912`, verified by CI run `40744277585` and published through PR #8. These were explicitly authorized and are recorded above.
+2. This report is anchored to the tested PR head. Re-run it for every later commit that changes code or controls.
 3. Add the worker/job runtime with durable retries, cancellation, and idempotent handlers.
 4. Add agent, tool/MCP, approval, and budget controls with independent review.
 5. Replace local rate-limit/idempotency state with durable, shared infrastructure before horizontal scaling.

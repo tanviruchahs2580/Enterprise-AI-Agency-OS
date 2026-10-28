@@ -30,7 +30,7 @@ Not implemented:
 - Event producer authentication, event signatures, consumer delivery guarantees, or a tamper-evident audit chain.
 - Contract, end-to-end, browser, load, or tool-execution test suites.
 
-The repository is published on `main`; the verified code revision is `99484db`. CI passes on GitHub Actions, and branch protection requires the `verify` check. There is no release or deployment.
+The repository is published on `main`; the verified code revision is `4814912`, delivered through PR #8. CI passes on GitHub Actions, and branch protection requires the `verify` check. There is no release or deployment.
 
 ## Requirements
 
